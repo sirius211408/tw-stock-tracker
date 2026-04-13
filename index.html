@@ -1,1 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>台股即時監測</title>
+    <style>
+        body { font-family: "Microsoft JhengHei", sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 300px; }
+        h1 { color: #333; margin-bottom: 0.5rem; }
+        .stock-id { color: #888; margin-bottom: 1.5rem; font-size: 1.2rem; }
+        .price { font-size: 3.5rem; font-weight: bold; margin-bottom: 1rem; }
+        .up { color: #eb4d4b; } /* 漲用紅 */
+        .down { color: #6ab04c; } /* 跌用綠 */
+        .update-time { font-size: 0.8rem; color: #aaa; }
+    </style>
+</head>
+<body>
 
+<div class="card">
+    <h1 id="stockName">載入中...</h1>
+    <div class="stock-id" id="stockId">----</div>
+    <div id="price" class="price">--.--</div>
+    <div class="update-time">最後更新：<span id="time">--:--:--</span></div>
+</div>
+
+<script>
+    // 設定要抓取的股票代碼（例如：2330 台積電）
+    const stockCode = '2330'; 
+
+    async function fetchStock() {
+        try {
+            // 使用證交所公開行情 API (此為範例 URL，實務上常透過 proxy)
+            // 這裡使用一個常用的公開 API 轉接
+            const res = await fetch(`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${stockCode}.tw&json=1&delay=0`);
+            const json = await res.json();
+            const data = json.msgArray[0];
+
+            document.getElementById('stockName').innerText = data.n; // 股票名稱
+            document.getElementById('stockId').innerText = `${data.c} (台股)`;
+            
+            const currentPrice = data.z; // 當前成交價
+            const openPrice = data.y;    // 昨收價
+            const priceElement = document.getElementById('price');
+            
+            priceElement.innerText = currentPrice;
+
+            // 判斷漲跌顏色
+            if (parseFloat(currentPrice) > parseFloat(openPrice)) {
+                priceElement.className = 'price up';
+            } else if (parseFloat(currentPrice) < parseFloat(openPrice)) {
+                priceElement.className = 'price down';
+            }
+
+            document.getElementById('time').innerText = data.t; // 揭示時間
+        } catch (error) {
+            console.error('抓取失敗:', error);
+            document.getElementById('stockName').innerText = '資料抓取頻率過高';
+        }
+    }
+
+    // 初始化與定時更新 (每 30 秒更新一次)
+    fetchStock();
+    setInterval(fetchStock, 30000);
+</script>
+
+</body>
+</html>
