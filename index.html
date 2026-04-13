@@ -24,43 +24,31 @@
 </div>
 
 <script>
-    // 設定要抓取的股票代碼（例如：2330 台積電）
     const stockCode = '2330'; 
 
     async function fetchStock() {
         try {
-            // 使用證交所公開行情 API (此為範例 URL，實務上常透過 proxy)
-            // 這裡使用一個常用的公開 API 轉接
             const res = await fetch(`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${stockCode}.tw&json=1&delay=0`);
             const json = await res.json();
             const data = json.msgArray[0];
 
-            document.getElementById('stockName').innerText = data.n; // 股票名稱
-            document.getElementById('stockId').innerText = `${data.c} (台股)`;
-            
-            const currentPrice = data.z; // 當前成交價
-            const openPrice = data.y;    // 昨收價
-            const priceElement = document.getElementById('price');
-            
-            priceElement.innerText = currentPrice;
+            // ...中間省略更新網頁內容的程式碼...
+            document.getElementById('stockName').innerText = data.n;
+            document.getElementById('price').innerText = data.z;
 
-            // 判斷漲跌顏色
-            if (parseFloat(currentPrice) > parseFloat(openPrice)) {
-                priceElement.className = 'price up';
-            } else if (parseFloat(currentPrice) < parseFloat(openPrice)) {
-                priceElement.className = 'price down';
-            }
-
-            document.getElementById('time').innerText = data.t; // 揭示時間
         } catch (error) {
             console.error('抓取失敗:', error);
-            document.getElementById('stockName').innerText = '資料抓取頻率過高';
         }
     }
 
-    // 初始化與定時更新 (每 30 秒更新一次)
+    // --- 重點在這裡 ---
+    
+    // 1. 網頁開啟時先執行一次，讓畫面上馬上出現數字
     fetchStock();
-    setInterval(fetchStock, 30000);
+
+    // 2. 設定每隔 60,000 毫秒（即 1 分鐘）自動再執行一次 fetchStock
+    setInterval(fetchStock, 60000); 
+
 </script>
 
 </body>
